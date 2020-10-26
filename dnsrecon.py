@@ -205,7 +205,7 @@ def check_nxdomain_hijack(nameserver):
 
     for record_type in ('A', 'AAAA'):
         try:
-            answers = res.query(test_name, record_type, tcp=True)
+            answers = res.resolve(test_name, record_type, tcp=True)
         except (
                 dns.resolver.NoNameservers, dns.resolver.NXDOMAIN, dns.exception.Timeout, dns.resolver.NoAnswer,
                 socket.error,
@@ -802,7 +802,7 @@ def dns_sec_check(domain, res):
     Check if a zone is configured for DNSSEC and if so if NSEC or NSEC3 is used.
     """
     try:
-        answer = res._res.query(domain, 'DNSKEY')
+        answer = res.resolve(domain, 'DNSKEY')
         print_status("DNSSEC is configured for {0}".format(domain))
         nsectype = get_nsec_type(domain, res)
         print_status("DNSKEYs:")
@@ -843,7 +843,7 @@ def check_bindversion(res, ns_server, timeout):
         request = dns.message.make_query('version.bind', 'txt', 'ch')
         try:
             response = res.query(request, ns_server, timeout=timeout, one_rr_per_rrset=True)
-            if len(response.answer) > 0:
+            if len(response.answer) > 0 and 'items' in response.answer[0]:
                 print_status(f"\t Bind Version for {ns_server} {response.answer[0].items[0].strings[0]}")
                 version = response.answer[0].items[0].strings[0]
         except (dns.resolver.NXDOMAIN, dns.exception.Timeout, dns.resolver.NoAnswer, socket.error,
